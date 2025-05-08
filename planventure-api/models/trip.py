@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import event
 from sqlalchemy.orm import validates
 from .base import BaseModel
@@ -61,6 +61,38 @@ class Trip(BaseModel):
                 raise ValueError('End date cannot be before start date')
         
         return date
+
+    @staticmethod
+    def generate_default_itinerary(start_date, end_date):
+        """
+        Generate a default itinerary template based on trip dates
+        """
+        if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
+            raise ValueError("start_date and end_date must be datetime objects")
+            
+        if end_date < start_date:
+            raise ValueError("end_date cannot be before start_date")
+            
+        itinerary = {}
+        current_date = start_date
+        day_count = 1
+
+        while current_date <= end_date:
+            day_key = f"day{day_count}"
+            itinerary[day_key] = {
+                "date": current_date.strftime('%Y-%m-%d'),
+                "activities": [
+                    {"time": "09:00", "activity": "Breakfast", "location": ""},
+                    {"time": "10:00", "activity": "Morning Activity", "location": ""},
+                    {"time": "13:00", "activity": "Lunch", "location": ""},
+                    {"time": "14:00", "activity": "Afternoon Activity", "location": ""},
+                    {"time": "19:00", "activity": "Dinner", "location": ""}
+                ]
+            }
+            current_date += timedelta(days=1)
+            day_count += 1
+
+        return itinerary
 
 # Add event listener to validate dates before flush
 @event.listens_for(Trip, 'before_insert')

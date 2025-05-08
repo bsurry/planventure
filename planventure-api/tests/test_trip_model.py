@@ -11,13 +11,19 @@ def test_new_trip(test_app, test_db, test_user):
         user_id=test_user.id,
         destination='Tokyo',
         start_date=start_date,
-        end_date=end_date
+        end_date=end_date,
+        itinerary={'day1': ['Visit Tokyo Tower']}
     )
     
     assert trip.destination == 'Tokyo'
     assert trip.user_id == test_user.id
     assert trip.start_date == start_date
     assert trip.end_date == end_date
+    assert trip.latitude is None
+    assert trip.longitude is None
+    assert 'day1' in trip.itinerary
+    assert len(trip.itinerary['day1']) == 1
+    assert trip.itinerary['day1'][0] == 'Visit Tokyo Tower'
 
 def test_trip_to_dict(test_app, test_db, test_trip):
     """Test trip serialization"""
@@ -56,17 +62,24 @@ def test_trip_dates_not_datetime_validation(test_app, test_db, test_user):
 
 def test_trip_itinerary_default(test_app, test_db, test_user):
     """Test default itinerary generation"""
-    start_date = datetime.now()
-    end_date = start_date + timedelta(days=5)
+    start_date = datetime.strptime('2025-06-01', '%Y-%m-%d')
+    end_date = datetime.strptime('2025-06-03', '%Y-%m-%d')
     
-    trip = Trip(
-        user_id=test_user.id,
-        destination='New York',
-        start_date=start_date,
-        end_date=end_date
-    )
+    # Generate itinerary
+    itinerary = Trip.generate_default_itinerary(start_date, end_date)
     
-    assert trip.itinerary is not None
-    assert len(trip.itinerary) == 5  # 5 days in the itinerary
-    assert 'day1' in trip.itinerary
-    assert 'day2' in trip.itinerary
+    
+    # Assertions
+    assert isinstance(itinerary, dict)
+    assert len(itinerary) == 3  # 3 days of activities
+    
+    # Check first day structure
+    assert 'day1' in itinerary
+    assert 'date' in itinerary['day1']
+    assert 'activities' in itinerary['day1']
+    assert len(itinerary['day1']['activities']) == 5  # 5 activities per day
+    
+    # Verify dates are correct
+    assert itinerary['day1']['date'] == '2025-06-01'
+    assert itinerary['day2']['date'] == '2025-06-02'
+    assert itinerary['day3']['date'] == '2025-06-03'

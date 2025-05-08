@@ -6,31 +6,6 @@ from datetime import datetime, timedelta
 
 trips_bp = Blueprint('trips', __name__)
 
-def generate_default_itinerary(start_date, end_date):
-    """
-    Generate a default itinerary template based on trip dates
-    """
-    itinerary = {}
-    current_date = start_date
-    day_count = 1
-
-    while current_date <= end_date:
-        day_key = f"day{day_count}"
-        itinerary[day_key] = {
-            "date": current_date.strftime('%Y-%m-%d'),
-            "activities": [
-                {"time": "09:00", "activity": "Breakfast", "location": ""},
-                {"time": "10:00", "activity": "Morning Activity", "location": ""},
-                {"time": "13:00", "activity": "Lunch", "location": ""},
-                {"time": "14:00", "activity": "Afternoon Activity", "location": ""},
-                {"time": "19:00", "activity": "Dinner", "location": ""}
-            ]
-        }
-        current_date += timedelta(days=1)
-        day_count += 1
-
-    return itinerary
-
 @trips_bp.route('/trips', methods=['POST'])
 @jwt_required()
 def create_trip():
@@ -46,7 +21,7 @@ def create_trip():
         if 'itinerary' in data and data['itinerary']:
             itinerary = data['itinerary']
         else:
-            itinerary = generate_default_itinerary(start_date, end_date)
+            itinerary = Trip.generate_default_itinerary(start_date, end_date)
         
         new_trip = Trip(
             user_id=current_user_id,
@@ -63,6 +38,9 @@ def create_trip():
         return jsonify({
             'message': 'Trip created',
             'trip_id': new_trip.id,
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
+            'destination': data['destination'],
             'itinerary': itinerary
         }), 201
         
