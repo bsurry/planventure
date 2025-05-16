@@ -68,10 +68,10 @@ class Trip(BaseModel):
         Generate a default itinerary template based on trip dates
         """
         if not isinstance(start_date, datetime) or not isinstance(end_date, datetime):
-            raise ValueError("start_date and end_date must be datetime objects")
+            raise ValueError("start date and end date must be datetime objects")
             
         if end_date < start_date:
-            raise ValueError("end_date cannot be before start_date")
+            raise ValueError("End date cannot be before start date")
             
         itinerary = {}
         current_date = start_date
@@ -100,4 +100,4 @@ class Trip(BaseModel):
 def validate_trip_dates(mapper, connection, target):
     if target.start_date and target.end_date:
         if target.end_date < target.start_date:
-            raise ValueError('End date cannot be before start date')
+            raise ValueError('End date cannot be before start date 3')
