@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import User, db
 from middleware.auth_middleware import require_auth
+from utils.validators import is_valid_email
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -26,17 +27,28 @@ def login():
 @auth_bp.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
+
+    print('Am I in this function???')
     
     if User.query.filter_by(email=data.get('email')).first():
-        return jsonify({'message': 'Email already registered'}), 400
-        
+        return jsonify({'message': 'Email already registered!!!'}), 400
+    
+    if not data.get('email') or not data.get('password'):
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    if not is_valid_email(data.get('email')):
+        return jsonify({'error': 'Invalid email format'}), 400
+    
     user = User(email=data.get('email'))
     user.password = data.get('password')
     
+    token = user.generate_auth_token()
+    print(f"Verification token for {user.email}: {token}")
+
     db.session.add(user)
     db.session.commit()
     
-    token = user.generate_auth_token()
+    
     return jsonify({'token': token}), 201
 
 @auth_bp.route('/protected', methods=['GET'])

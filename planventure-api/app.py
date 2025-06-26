@@ -64,11 +64,13 @@ def health_check():
     })
 
 # Registration routes
+"""
 @app.route('/api/register', methods=['POST'])
 def register():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    print(f"Registration attempt for email: {email}")  # For debugging purposes
 
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
@@ -77,9 +79,10 @@ def register():
         return jsonify({'error': 'Invalid email format'}), 400
 
     if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'Email already registered'}), 409
+        return jsonify({'error': 'Email already registered+++'}), 409
 
     verification_token = secrets.token_urlsafe(32)
+    print(f"Verification token for {email}: {verification_token}")  # For debugging purposes
     new_user = User(
         email=email,
         password=generate_password_hash(password),
@@ -97,6 +100,7 @@ def register():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Registration failed'}), 500
+    """
 
 @app.route('/api/verify-email/<token>', methods=['GET'])
 def verify_email(token):
